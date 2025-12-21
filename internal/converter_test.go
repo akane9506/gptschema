@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/akane9506/openai-gqlparser/internal/models"
+	"github.com/akane9506/jsonschema/testdata"
 )
 
 type Structured struct {
@@ -111,19 +111,19 @@ func TestStructProperties(t *testing.T) {
 	}{
 		{
 			name:             "definition type",
-			input:            reflect.TypeOf(models.Definition{}),
+			input:            reflect.TypeOf(testdata.Definition{}),
 			expectedProps:    definitionStructured.props,
 			expectedRequired: definitionStructured.required,
 		},
 		{
 			name:             "tense type",
-			input:            reflect.TypeOf(models.Tenses{}),
+			input:            reflect.TypeOf(testdata.Tenses{}),
 			expectedProps:    tenseStructured.props,
 			expectedRequired: tenseStructured.required,
 		},
 		{
 			name:             "word type",
-			input:            reflect.TypeOf(models.Word{}),
+			input:            reflect.TypeOf(testdata.Word{}),
 			expectedProps:    wordStructed.props,
 			expectedRequired: wordStructed.required,
 		},
@@ -152,7 +152,7 @@ func TestStructProperties(t *testing.T) {
 	}
 
 	t.Run("Complete schema", func(t *testing.T) {
-		output := JsonTypeOf(reflect.TypeOf(models.Word{}))
+		output := JsonTypeOf(reflect.TypeOf(testdata.Word{}))
 		required := map[string](any){
 			"type":                 "object",
 			"properties":           wordStructed.props,

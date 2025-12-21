@@ -1,4 +1,4 @@
-package models
+package testdata
 
 type Definition struct {
 	Examples     []string `json:"examples" firestore:"examples"`
