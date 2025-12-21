@@ -11,7 +11,7 @@ var (
 )
 
 // Schema represents a JSON schema
-type Schema map[string]any
+type Schema map[string]interface{}
 
 // Options configures schema generation
 type Options struct {
@@ -27,7 +27,7 @@ func DefaultOptions() *Options {
 	}
 }
 
-// Helper functions
+// ========== Helper functions ==========
 
 // deref dereferences pointer types recursively to get the underlying type
 func deref(t reflect.Type) reflect.Type {
@@ -35,6 +35,67 @@ func deref(t reflect.Type) reflect.Type {
 		t = t.Elem()
 	}
 	return t
+}
+
+func parseArrayItemType(
+	t reflect.Type,
+	visited map[reflect.Type]bool,
+	depth int,
+	opts *Options) (interface{}, error) {
+	schema, err := jsonTypeOf(t.Elem(), visited, depth, opts)
+	if err != nil {
+		return nil, err
+	}
+	switch s := schema.(type) {
+	case string:
+		return Schema{"type": s}, nil
+	case Schema:
+		return s, nil
+	default:
+		return schema, nil
+	}
+}
+
+// jsonTypeOf converts a Go reflect.Type to a JSON Schema representation
+func jsonTypeOf(
+	t reflect.Type,
+	visited map[reflect.Type]bool,
+	depth int,
+	opts *Options) (interface{}, error) {
+	// check depth to prevent infinite recursion
+	if depth > opts.MaxDepth {
+		return nil, ErrCircularRef
+	}
+
+	t = deref(t)
+
+	if t.Kind() == reflect.Struct {
+		if visited[t] {
+			return nil, ErrCircularRef
+		}
+		visited[t] = true
+		defer delete(visited, t)
+	}
+
+	switch t.Kind() {
+	case reflect.String:
+		return "string", nil
+	case reflect.Bool:
+		return "boolean", nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return "integer", nil
+	case reflect.Float32, reflect.Float64:
+		return "number", nil
+	case reflect.Slice, reflect.Array:
+		items, err := parseArrayItemType(t, visited, depth+1, opts)
+		if err != nil {
+			return nil, err
+		}
+		return Schema{"type": "array", "items": items}, nil
+	default:
+		return nil, ErrUnsupportedType
+	}
 }
 
 // func parseArrayItemType(t reflect.Type) any {
