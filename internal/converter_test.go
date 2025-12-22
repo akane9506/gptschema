@@ -73,7 +73,7 @@ func TestDeref(t *testing.T) {
 	}
 }
 
-func TestJsonTypeOf(t *testing.T) {
+func TestPrimitiveTypeConversion(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       reflect.Type
@@ -127,9 +127,112 @@ func TestJsonTypeOf(t *testing.T) {
 	}
 }
 
-func runJsonTypeOf(input reflect.Type) (interface{}, any) {
-	opts := DefaultOptions()
-	visited := make(map[reflect.Type]bool)
-	result, err := jsonTypeOf(input, visited, 0, opts)
-	return result, err
+func TestArrayTypeConversion(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       reflect.Type
+		expected    interface{}
+		shouldError bool
+	}{
+		{
+			name:  "string items",
+			input: reflect.TypeOf([]string{}),
+			expected: Schema{
+				"type": "string",
+			},
+			shouldError: false,
+		},
+		{
+			name:  "string pointer items",
+			input: reflect.TypeOf([]*string{}),
+			expected: Schema{
+				"type": "string",
+			},
+			shouldError: false,
+		},
+		{
+			name:  "integer items",
+			input: reflect.TypeOf([]int{}),
+			expected: Schema{
+				"type": "integer",
+			},
+			shouldError: false,
+		},
+		{
+			name:  "array items",
+			input: reflect.TypeOf([][]int{}),
+			expected: Schema{
+				"type": "array",
+				"items": Schema{
+					"type": "integer",
+				},
+			},
+			shouldError: false,
+		},
+		{
+			name:  "3D array items",
+			input: reflect.TypeOf([][][]*int{}),
+			expected: Schema{
+				"type": "array",
+				"items": Schema{
+					"type": "array",
+					"items": Schema{
+						"type": "integer",
+					},
+				},
+			},
+			shouldError: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := runParseArray(tt.input)
+			if tt.shouldError && err == nil {
+				t.Errorf("expected error but got nil")
+				return
+			}
+			if !tt.shouldError && err != nil {
+				t.Errorf("unexpected error: %v", err)
+				return
+			}
+
+			if tt.shouldError {
+				return
+			}
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("expected %+v, got %+v", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestStructConversion(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    reflect.Type
+		expected Schema
+	}{
+		{
+			name:     "simple struct without tags",
+			input:    reflect.TypeOf(SimpleStruct{}),
+			expected: SimpleStructSchema,
+		},
+		{
+			name:     "struct with json tags",
+			input:    reflect.TypeOf(StructWithTags{}),
+			expected: StructWithTagsSchema,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := runJsonTypeOf(tt.input)
+			if err != nil {
+				t.Errorf("expected error but got nil")
+				return
+			}
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("expected %+v, got %+v", tt.expected, result)
+			}
+		})
+	}
 }
