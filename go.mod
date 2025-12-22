@@ -1,3 +1,3 @@
-module github.com/akane9506/openai-schema
+module github.com/akane9506/gptschema
 
-go 1.21
+go 1.22

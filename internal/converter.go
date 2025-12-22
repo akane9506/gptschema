@@ -162,9 +162,7 @@ func JsonTypeOf(
 	if depth > opts.MaxDepth {
 		return nil, ErrCircularRef
 	}
-
 	t = deref(t)
-
 	if t.Kind() == reflect.Struct {
 		if visited[t] {
 			return nil, ErrCircularRef
@@ -172,7 +170,6 @@ func JsonTypeOf(
 		visited[t] = true
 		defer delete(visited, t)
 	}
-
 	switch t.Kind() {
 	case reflect.String:
 		return "string", nil
