@@ -14,7 +14,7 @@ func getInputs() (*Options, map[reflect.Type]bool, int) {
 
 func runJsonTypeOf(input reflect.Type) (interface{}, error) {
 	opts, visited, depth := getInputs()
-	result, err := jsonTypeOf(input, visited, depth, opts)
+	result, err := JsonTypeOf(input, visited, depth, opts)
 	return result, err
 }
 
