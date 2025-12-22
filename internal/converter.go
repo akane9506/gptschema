@@ -69,7 +69,7 @@ func parseArrayItemType(
 	visited map[reflect.Type]bool,
 	depth int,
 	opts *Options) (interface{}, error) {
-	schema, err := jsonTypeOf(t.Elem(), visited, depth, opts)
+	schema, err := JsonTypeOf(t.Elem(), visited, depth, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func structProperties(
 		}
 		fieldName, isOptional := parseJSONTag(field.Name, jsonTag)
 		// generate the schema of the field
-		fieldSchema, err := jsonTypeOf(field.Type, visited, depth, opts)
+		fieldSchema, err := JsonTypeOf(field.Type, visited, depth, opts)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -152,8 +152,8 @@ func structProperties(
 	return props, required, nil
 }
 
-// jsonTypeOf converts a Go reflect.Type to a JSON Schema representation
-func jsonTypeOf(
+// JsonTypeOf converts a Go reflect.Type to a JSON Schema representation
+func JsonTypeOf(
 	t reflect.Type,
 	visited map[reflect.Type]bool,
 	depth int,

@@ -73,6 +73,64 @@ func TestDeref(t *testing.T) {
 	}
 }
 
+func TestParseJSONTag(t *testing.T) {
+	tests := []struct {
+		name         string
+		fieldName    string
+		tag          string
+		expectedName string
+		expectedOpt  bool
+	}{
+		{
+			name:         "empty tag uses field name",
+			fieldName:    "MyField",
+			tag:          "",
+			expectedName: "MyField",
+			expectedOpt:  false,
+		},
+		{
+			name:         "simple tag",
+			fieldName:    "MyField",
+			tag:          "my_field",
+			expectedName: "my_field",
+			expectedOpt:  false,
+		},
+		{
+			name:         "tag with omitempty",
+			fieldName:    "MyField",
+			tag:          "my_field,omitempty",
+			expectedName: "my_field",
+			expectedOpt:  true,
+		},
+		{
+			name:         "empty name in tag uses field name",
+			fieldName:    "MyField",
+			tag:          ",omitempty",
+			expectedName: "MyField",
+			expectedOpt:  true,
+		},
+		{
+			name:         "tag with multiple options",
+			fieldName:    "MyField",
+			tag:          "my_field,omitempty,string",
+			expectedName: "my_field",
+			expectedOpt:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			name, opt := parseJSONTag(tt.fieldName, tt.tag)
+			if name != tt.expectedName {
+				t.Errorf("parseJSONTag() name = %v, want %v", name, tt.expectedName)
+			}
+			if opt != tt.expectedOpt {
+				t.Errorf("parseJSONTag() optional = %v, want %v", opt, tt.expectedOpt)
+			}
+		})
+	}
+}
+
 func TestPrimitiveTypeConversion(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -222,6 +280,31 @@ func TestStructConversion(t *testing.T) {
 			input:    reflect.TypeOf(StructWithTags{}),
 			expected: StructWithTagsSchema,
 		},
+		{
+			name:     "struct with empty json tags",
+			input:    reflect.TypeOf(StructWithEmptyTag{}),
+			expected: StructWithEmptyTagSchema,
+		},
+		{
+			name:     "nested struct",
+			input:    reflect.TypeOf(NestedStruct{}),
+			expected: NestedStructSchema,
+		},
+		{
+			name:     "complex nested struct",
+			input:    reflect.TypeOf(Employee{}),
+			expected: EmployeeSchema,
+		},
+		{
+			name:     "embedded struct",
+			input:    reflect.TypeOf(ExtendedInfo{}),
+			expected: ExtendedInfoSchema,
+		},
+		{
+			name:     "array for struct with pointers",
+			input:    reflect.TypeOf(CollectionWithPointers{}),
+			expected: CollectionWithPointersSchema,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -235,4 +318,49 @@ func TestStructConversion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestArrayWithUnsupportedElementType(t *testing.T) {
+	t.Run("array of maps should fail", func(t *testing.T) {
+		arrayType := reflect.TypeOf([]map[string]string{})
+		_, err := runParseArray(arrayType)
+		if err != ErrUnsupportedType {
+			t.Errorf("expected ErrUnsupportedType for array of maps, got %v", err)
+		}
+	})
+
+	t.Run("array of channels should fail", func(t *testing.T) {
+		arrayType := reflect.TypeOf([]chan int{})
+		_, err := runParseArray(arrayType)
+		if err != ErrUnsupportedType {
+			t.Errorf("expected ErrUnsupportedType for array of channels, got %v", err)
+		}
+	})
+}
+
+func TestCircularReferenceDetection(t *testing.T) {
+	t.Run("circular reference in struct", func(t *testing.T) {
+		opts := DefaultOptions()
+		visited := make(map[reflect.Type]bool)
+		nodeType := reflect.TypeOf(Node{})
+
+		// Manually mark as visited to simulate circular reference
+		visited[nodeType] = true
+		_, err := JsonTypeOf(nodeType, visited, 0, opts)
+		if err != ErrCircularRef {
+			t.Errorf("expected ErrCircularRef, got %v", err)
+		}
+	})
+
+	t.Run("max depth exceeded", func(t *testing.T) {
+		opts := &Options{
+			AllowAdditionalProperty: false,
+			MaxDepth:                0,
+		}
+		visited := make(map[reflect.Type]bool)
+		_, err := JsonTypeOf(reflect.TypeOf(SimpleStruct{}), visited, 1, opts)
+		if err != ErrCircularRef {
+			t.Errorf("expected ErrCircularRef due to max depth, got %v", err)
+		}
+	})
 }
