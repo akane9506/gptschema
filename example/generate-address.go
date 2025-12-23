@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/akane9506/gptschema"
 	"github.com/openai/openai-go/v3"
 )
 
@@ -33,7 +34,7 @@ type Address struct {
 func main() {
 	client := openai.NewClient()
 	ctx := context.Background()
-	schema, err := GenerateSchema(AddressItem{})
+	schema, err := gptschema.GenerateSchema(AddressItem{})
 
 	question := "Generate a mock address for a historical russian writer"
 
@@ -55,7 +56,7 @@ func main() {
 		ResponseFormat: openai.ChatCompletionNewParamsResponseFormatUnion{
 			OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{JSONSchema: schemaParam},
 		},
-		Model: openai.ChatModelGPT4_1Mini2025_04_14,
+		Model: openai.ChatModelGPT5Nano,
 	})
 
 	if err != nil {
