@@ -2,6 +2,7 @@ package gptschema
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/akane9506/gptschema/internal"
@@ -133,5 +134,60 @@ func TestGenerateSchema_MultipleOptions(t *testing.T) {
 	}
 	if result == nil {
 		t.Errorf("expected non-nil result")
+	}
+}
+
+func TestGenerateSchemaJSON(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  interface{}
+		output []string // key parts that should be in the JSON
+	}{
+		{name: "simple struct with tags",
+			input: internal.StructWithTags{},
+			output: []string{
+				`"type":"object"`,
+				`"name":{"type":"string"}`,
+				`"age":{"type":"integer"}`,
+				`"email":{"type":["string","null"]}`,
+				`"required":["name","age","email"]`,
+				`"additionalProperties":false`,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := GenerateSchemaJSON(tt.input)
+			if err != nil {
+				t.Errorf("GenerateSchemaJSON() error = %v", err)
+			}
+			for _, part := range tt.output {
+				if !strings.Contains(result, part) {
+					t.Errorf("GenerateSchemaJSON() result missing expected part %s\nGot: %s", part, result)
+				}
+			}
+		})
+	}
+}
+
+func TestGenerateSchemaJSON_InvalidInputs(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    interface{}
+		errorMsg string // key parts that should be in the JSON
+	}{
+		{
+			name:     "non-struct input",
+			input:    int(42),
+			errorMsg: "cannot generate schema for nil value",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := GenerateSchemaJSON(tt.input)
+			if err == nil {
+				t.Errorf("GenerateSchemaJSON() expected error but got none")
+			}
+		})
 	}
 }
