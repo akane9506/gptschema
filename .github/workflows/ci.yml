@@ -8,6 +8,12 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      go-version:
+        description: "Go version to use"
+        required: false
+        default: "1.22"
 
 jobs:
   build:
@@ -18,7 +24,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.22"
+          go-version: ${{ github.event.inputs.go-version || '1.22'}}
 
       - name: Cache Go modules
         uses: actions/cache@v4
