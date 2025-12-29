@@ -10,6 +10,7 @@
 package gptschema
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -138,6 +139,61 @@ func GenerateSchema(v interface{}, opts ...Option) (*internal.Schema, error) {
 	return &schema, nil
 }
 
-func GenerateSchemaJSON(v interface{}) (string, error) {
-	return "", nil
+// GenerateSchemaJSON converts a Go type into a JSON Schema string compatible with OpenAI's structured outputs.
+//
+// This is a convenience wrapper around GenerateSchema that marshals the resulting schema
+// into a JSON string, making it ready to use directly in API calls or save to files.
+//
+// Parameters:
+//   - v: Any Go value whose type will be converted to a JSON Schema. The input type can either be
+//     a struct or the pointer to a struct.
+//   - opts: Optional configuration functions to customize schema generation (e.g., WithMaxDepth).
+//
+// Returns:
+//   - string: The JSON Schema as a JSON-encoded string.
+//   - error: An error if the type is unsupported, if circular references are detected,
+//     or if JSON marshaling fails.
+//
+// This function follows the same type support and requirements as GenerateSchema.
+// See GenerateSchema documentation for details on supported types, JSON tags, and constraints.
+//
+// Examples:
+//
+//	// Simple struct
+//	type Person struct {
+//	    Name string `json:"name"`
+//	    Age  int    `json:"age"`
+//	}
+//	jsonSchema, _ := GenerateSchemaJSON(Person{})
+//	// jsonSchema = `{"type":"object","properties":{"name":{"type":"string"},"age":{"type":"integer"}},"required":["name","age"],"additionalProperties":false}`
+//
+//	// With options
+//	type DeepStruct struct {
+//	    Level1 struct {
+//	        Value string `json:"value"`
+//	    } `json:"level1"`
+//	}
+//	jsonSchema, _ := GenerateSchemaJSON(DeepStruct{}, WithMaxDepth(10))
+//
+//	// Use in OpenAI API call
+//	jsonSchema, err := GenerateSchemaJSON(MyResponseFormat{})
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//	// Pass jsonSchema directly to API request
+//
+// Error Conditions:
+//   - Returns same errors as GenerateSchema for type validation and circular references
+//   - Returns error if JSON marshaling fails (rare, indicates internal schema structure issue)
+
+func GenerateSchemaJSON(v interface{}, opts ...Option) (string, error) {
+	schema, err := GenerateSchema(v, opts...)
+	if err != nil {
+		return "", err
+	}
+	parsedSchema, err := json.Marshal(schema)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal schema to JSON: %w", err)
+	}
+	return string(parsedSchema), nil
 }
