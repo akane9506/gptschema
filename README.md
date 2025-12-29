@@ -1,6 +1,6 @@
 # gptschema
 
-[![CI](https://github.com/akane9506/gptschema/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/akane9506/gptschema/actions/workflows/go.yml)
+[![CI](https://github.com/akane9506/gptschema/actions/workflows/ci.yml/badge.svg)](https://github.com/akane9506/gptschema/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/akane9506/gptschema.svg)](https://pkg.go.dev/github.com/akane9506/gptschema)
 [![Go Report Card](https://goreportcard.com/badge/github.com/akane9506/gptschema)](https://goreportcard.com/report/github.com/akane9506/gptschema)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
