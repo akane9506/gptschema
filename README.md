@@ -9,7 +9,7 @@ A Go library for generating JSON schemas from Go structs, specifically designed 
 
 ## Features
 
-- 🎯 **OpenAI Optimized**: Generates schemas that comply with OpenAI's [structured output](https://platform.openai.com/docs/guides/structured-outputs) requirements
+- **OpenAI Optimized**: Generates schemas that comply with OpenAI's [structured output](https://platform.openai.com/docs/guides/structured-outputs) requirements
 - **Type Safe**: Leverages Go's type system to ensure schema correctness
 - **JSON Tag Support**: Respects `json` struct tags including `omitempty` for optional fields
 - **Nested Structures**: Handles deeply nested structs, slices, and arrays
