@@ -1,5 +1,6 @@
 # gptschema
 
+[![CI](https://github.com/akane9506/gptschema/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/akane9506/gptschema/actions/workflows/go.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/akane9506/gptschema.svg)](https://pkg.go.dev/github.com/akane9506/gptschema)
 [![Go Report Card](https://goreportcard.com/badge/github.com/akane9506/gptschema)](https://goreportcard.com/report/github.com/akane9506/gptschema)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,11 +10,11 @@ A Go library for generating JSON schemas from Go structs, specifically designed 
 ## Features
 
 - 🎯 **OpenAI Optimized**: Generates schemas that comply with OpenAI's [structured output](https://platform.openai.com/docs/guides/structured-outputs) requirements
-- 🔒 **Type Safe**: Leverages Go's type system to ensure schema correctness
-- 🏷️ **JSON Tag Support**: Respects `json` struct tags including `omitempty` for optional fields
-- 🔄 **Nested Structures**: Handles deeply nested structs, slices, and arrays
-- 🛡️ **Circular Reference Detection**: Prevents infinite recursion with configurable depth limits
-- 🎨 **Embedded Structs**: Automatically merges embedded struct fields
+- **Type Safe**: Leverages Go's type system to ensure schema correctness
+- **JSON Tag Support**: Respects `json` struct tags including `omitempty` for optional fields
+- **Nested Structures**: Handles deeply nested structs, slices, and arrays
+- **Circular Reference Detection**: Prevents infinite recursion with configurable depth limits
+- **Embedded Structs**: Automatically merges embedded struct fields
 
 ## Installation
 
@@ -170,6 +171,10 @@ schema2, _ := gptschema.GenerateSchema(&Person{})
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
+Trigger go package indexing
+```
+GOPROXY=proxy.golang.org go list -m github.com/akane9506/gptschema@v{{latest_release tag}}
+```
 
 ## License
 This project is licensed under the **MIT License** - see the LICENSE file for details.
